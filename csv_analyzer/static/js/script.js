@@ -114,6 +114,10 @@ function initializeCharts() {
 // Create Volume Distribution Chart
 function createVolumeChart() {
     const ctx = document.getElementById('volume-chart').getContext('2d');
+    //destroy existing chart if it exists
+    if (charts.volume) {
+        charts.volume.destroy();
+    }
 
     // Group data into volume ranges
     const volumeRanges = {
@@ -163,6 +167,10 @@ function createVolumeChart() {
 // Create Keyword Difficulty Chart
 function createDifficultyChart() {
     const ctx = document.getElementById('difficulty-chart').getContext('2d');
+    //destroy existing chart if it exists
+    if (charts.difficulty) {
+        charts.difficulty.destroy();
+    }
 
     // Group data into difficulty ranges
     const difficultyRanges = {
@@ -216,6 +224,10 @@ function createDifficultyChart() {
 // Create CPC Chart
 function createCpcChart() {
     const ctx = document.getElementById('cpc-chart').getContext('2d');
+    //destroy existing chart if it exists
+    if (charts.cpc) {
+        charts.cpc.destroy();
+    }
 
     // Group data into CPC ranges
     const cpcRanges = {
@@ -273,6 +285,10 @@ function createCpcChart() {
 // Create Intent Distribution Chart
 function createIntentChart() {
     const ctx = document.getElementById('intent-chart').getContext('2d');
+    //destroy existing chart if it exists
+    if (charts.intent) {
+        charts.intent.destroy();
+    }
 
     // Count intents
     const intentCounts = {};
@@ -447,29 +463,41 @@ function debounce(func, delay) {
         timeout = setTimeout(() => func.apply(context, args), delay);
     };
 }
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     const uploadForm = document.getElementById('upload-form');
-    const fileInput = document.getElementById('csv-file');
-    const uploadBtn = document.getElementById('upload-btn');
-    const loadingIndicator = document.getElementById('loading');
     const resultsSection = document.getElementById('results-section');
+    const csvFileInput = document.getElementById('csv-file');
+    const loadingIndicator = document.getElementById('loading');
+
+    let allData = [];
+    let filteredData = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
+    // Store chart instances so we can destroy them before recreating
+    let charts = {
+        volume: null,
+        difficulty: null,
+        cpc: null,
+        intent: null
+    };
 
     uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const file = fileInput.files[0];
         if (!file) {
             alert('Please select a CSV file');
             return;
         }
-        
+
         // Show loading indicator
         loadingIndicator.classList.remove('hidden');
         uploadBtn.disabled = true;
-        
+
         const formData = new FormData();
         formData.append('file', file);
-        
+
         fetch('/upload', {
             method: 'POST',
             body: formData
@@ -497,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show results section
         resultsSection.classList.remove('hidden');
         resultsSection.classList.add('visible');
-        
+
         // Process and display the data
         populateTable(data);
         createCharts(data);
@@ -507,17 +535,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function populateTable(data) {
         const tableBody = document.getElementById('keywords-data');
         const keywordCount = document.getElementById('keyword-count');
-        
+
         // Clear existing data
         tableBody.innerHTML = '';
-        
+
         // Set count
         keywordCount.textContent = `(${data.length} keywords)`;
-        
+
         // Add data to table
         data.forEach(item => {
             const row = document.createElement('tr');
-            
+
             row.innerHTML = `
                 <td>${item.keyword}</td>
                 <td>${item.search_intent}</td>
@@ -525,30 +553,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${item.keyword_difficulty}</td>
                 <td>$${item.cpc.toFixed(2)}</td>
             `;
-            
+
             tableBody.appendChild(row);
         });
-        
+
         setupPagination(data);
     }
 
     function createCharts(data) {
         // Volume Chart
         createVolumeChart(data);
-        
+
         // Difficulty Chart
         createDifficultyChart(data);
-        
+
         // CPC Chart
         createCpcChart(data);
-        
+
         // Intent Chart
         createIntentChart(data);
     }
 
     function createVolumeChart(data) {
         const ctx = document.getElementById('volume-chart').getContext('2d');
-        
+        //destroy existing chart if it exists
+        if (charts.volume) {
+            charts.volume.destroy();
+        }
+
         // Group by volume ranges
         const volumeRanges = {
             '0-100': 0,
@@ -557,7 +589,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '1001-5000': 0,
             '5001+': 0
         };
-        
+
         data.forEach(item => {
             const volume = item.search_volume;
             if (volume <= 100) volumeRanges['0-100']++;
@@ -566,8 +598,8 @@ document.addEventListener('DOMContentLoaded', function() {
             else if (volume <= 5000) volumeRanges['1001-5000']++;
             else volumeRanges['5001+']++;
         });
-        
-        new Chart(ctx, {
+
+        charts.volume = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: Object.keys(volumeRanges),
@@ -596,7 +628,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function createDifficultyChart(data) {
         const ctx = document.getElementById('difficulty-chart').getContext('2d');
-        
+        //destroy existing chart if it exists
+        if (charts.difficulty) {
+            charts.difficulty.destroy();
+        }
+
         // Group by difficulty ranges
         const difficultyRanges = {
             'Easy (0-20)': 0,
@@ -605,7 +641,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Very Hard (61-80)': 0,
             'Extreme (81-100)': 0
         };
-        
+
         data.forEach(item => {
             const difficulty = item.keyword_difficulty;
             if (difficulty <= 20) difficultyRanges['Easy (0-20)']++;
@@ -614,8 +650,8 @@ document.addEventListener('DOMContentLoaded', function() {
             else if (difficulty <= 80) difficultyRanges['Very Hard (61-80)']++;
             else difficultyRanges['Extreme (81-100)']++;
         });
-        
-        new Chart(ctx, {
+
+        charts.difficulty = new Chart(ctx, {
             type: 'pie',
             data: {
                 labels: Object.keys(difficultyRanges),
@@ -647,13 +683,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function createCpcChart(data) {
         const ctx = document.getElementById('cpc-chart').getContext('2d');
-        
+        //destroy existing chart if it exists
+        if (charts.cpc) {
+            charts.cpc.destroy();
+        }
+
         // Sort by CPC and get top 10
         const topCpc = [...data]
             .sort((a, b) => b.cpc - a.cpc)
             .slice(0, 10);
-        
-        new Chart(ctx, {
+
+        charts.cpc = new Chart(ctx, {
             type: 'horizontalBar',
             data: {
                 labels: topCpc.map(item => item.keyword),
@@ -680,15 +720,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function createIntentChart(data) {
         const ctx = document.getElementById('intent-chart').getContext('2d');
-        
+        //destroy existing chart if it exists
+        if (charts.intent) {
+            charts.intent.destroy();
+        }
+
         // Count by intent
         const intentCounts = {};
         data.forEach(item => {
             const intent = item.search_intent;
             intentCounts[intent] = (intentCounts[intent] || 0) + 1;
         });
-        
-        new Chart(ctx, {
+
+        charts.intent = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: Object.keys(intentCounts),
@@ -724,13 +768,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const volumeMax = document.getElementById('volume-max');
         const applyFiltersBtn = document.getElementById('apply-filters');
         const resetFiltersBtn = document.getElementById('reset-filters');
-        
+
         let filteredData = [...originalData];
-        
+
         applyFiltersBtn.addEventListener('click', function() {
             // Start with original data
             filteredData = [...originalData];
-            
+
             // Apply search filter
             const searchTerm = searchInput.value.toLowerCase();
             if (searchTerm) {
@@ -738,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     item.keyword.toLowerCase().includes(searchTerm)
                 );
             }
-            
+
             // Apply intent filter
             const selectedIntent = intentFilter.value;
             if (selectedIntent && selectedIntent !== 'all') {
@@ -746,33 +790,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     item.search_intent.toLowerCase() === selectedIntent.toLowerCase()
                 );
             }
-            
+
             // Apply volume range filter
             const minVolume = volumeMin.value ? parseInt(volumeMin.value) : 0;
             const maxVolume = volumeMax.value ? parseInt(volumeMax.value) : Infinity;
-            
+
             filteredData = filteredData.filter(item => 
                 item.search_volume >= minVolume && item.search_volume <= maxVolume
             );
-            
+
             // Apply sorting
             applySorting(filteredData, sortBy.value);
-            
+
             // Update display
             populateTable(filteredData);
         });
-        
+
         resetFiltersBtn.addEventListener('click', function() {
             searchInput.value = '';
             intentFilter.value = 'all';
             sortBy.value = 'search_volume_desc';
             volumeMin.value = '';
             volumeMax.value = '';
-            
+
             filteredData = [...originalData];
             populateTable(filteredData);
         });
-        
+
         sortBy.addEventListener('change', function() {
             applySorting(filteredData, this.value);
             populateTable(filteredData);
@@ -807,23 +851,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const prevButton = document.getElementById('prev-page');
         const nextButton = document.getElementById('next-page');
         const pageInfo = document.getElementById('page-info');
-        
+
         const rowsPerPage = 10;
         let currentPage = 1;
         const totalPages = Math.ceil(data.length / rowsPerPage);
-        
+
         pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-        
+
         if (totalPages <= 1) {
             prevButton.disabled = true;
             nextButton.disabled = true;
             return;
         }
-        
+
         // Enable/disable buttons
         prevButton.disabled = currentPage === 1;
         nextButton.disabled = currentPage === totalPages;
-        
+
         // Set up button click handlers
         prevButton.addEventListener('click', function() {
             if (currentPage > 1) {
@@ -834,7 +878,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 nextButton.disabled = false;
             }
         });
-        
+
         nextButton.addEventListener('click', function() {
             if (currentPage < totalPages) {
                 currentPage++;
@@ -844,7 +888,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 prevButton.disabled = false;
             }
         });
-        
+
         // Initial display
         displayPage(data, currentPage, rowsPerPage);
     }
@@ -852,14 +896,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayPage(data, page, rowsPerPage) {
         const tableBody = document.getElementById('keywords-data');
         tableBody.innerHTML = '';
-        
+
         const start = (page - 1) * rowsPerPage;
         const end = start + rowsPerPage;
         const paginatedData = data.slice(start, end);
-        
+
         paginatedData.forEach(item => {
             const row = document.createElement('tr');
-            
+
             row.innerHTML = `
                 <td>${item.keyword}</td>
                 <td>${item.search_intent}</td>
@@ -867,7 +911,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${item.keyword_difficulty}</td>
                 <td>$${item.cpc.toFixed(2)}</td>
             `;
-            
+
             tableBody.appendChild(row);
         });
     }
