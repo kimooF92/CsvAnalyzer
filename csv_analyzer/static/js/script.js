@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const toggleFiltersBtn = document.getElementById('toggle-filters');
   const toggleChartsBtn = document.getElementById('toggle-charts');
   const chartsSection = document.getElementById('charts-section');
-  
+
   // Check if elements exist before attaching event listeners
   if (uploadForm) {
 const pageInfo = document.getElementById('page-info');
@@ -508,6 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadSection = document.getElementById('upload-section');
     const dashboardSection = document.getElementById('dashboard-section');
     const dashboardLink = document.getElementById('dashboard-link');
+    const resultsSection = document.getElementById('results-section'); // Added resultsSection
 
     // Upload elements
     const uploadForm = document.getElementById('upload-form');
@@ -515,6 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedFileText = document.getElementById('selected-file');
     const dropZone = document.getElementById('drop-zone');
     const loadingIndicator = document.getElementById('loading');
+    const uploadBtn = document.getElementById('upload-btn'); // Added uploadBtn
+
 
     // Toggle elements
     const toggleFiltersBtn = document.getElementById('toggle-filters');
@@ -568,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedFileText.textContent = files[0].name;
         }
     }
-    
+
     if (dropZone) {
         dropZone.addEventListener('drop', handleDrop, false);
     }
@@ -642,9 +645,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 uploadSection.classList.remove('active');
                 dashboardSection.classList.add('active');
             }
-        });
-    }
-});
 
             // Update navigation
             document.querySelector('.nav-links a.active').classList.remove('active');
