@@ -580,17 +580,11 @@ body {
     background-color: rgba(67, 97, 238, 0.05);
 }
 
+#keywords-table td:nth-child(3),
 #keywords-table td:nth-child(4),
 #keywords-table td:nth-child(5),
-#keywords-table td:nth-child(6),
-#keywords-table td:nth-child(7) {
+#keywords-table td:nth-child(6) {
     text-align: right;
-}
-
-#keywords-table td:nth-child(2) {
-    text-transform: capitalize;
-    color: var(--primary-color);
-    font-weight: 500;
 }
 
 .quality-score {

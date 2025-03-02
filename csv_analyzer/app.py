@@ -119,38 +119,6 @@ def process_csv(filepath):
 
             # Fill NaN values
             df = df.fillna({'search_volume': 0, 'keyword_difficulty': 0, 'cpc': 0})
-            
-            # Detect keyword categories
-            def detect_category(keyword):
-                keyword = keyword.lower()
-                categories = []
-                
-                # Recipe categories
-                if 'recipe' in keyword:
-                    categories.append('recipe')
-                if any(term in keyword for term in ['breakfast', 'morning meal', 'brunch']):
-                    categories.append('breakfast')
-                if any(term in keyword for term in ['lunch', 'midday meal']):
-                    categories.append('lunch')
-                if any(term in keyword for term in ['dinner', 'evening meal', 'supper']):
-                    categories.append('dinner')
-                if any(term in keyword for term in ['dessert', 'cake', 'cookie', 'pie', 'ice cream', 'sweet']):
-                    categories.append('dessert')
-                if any(term in keyword for term in ['snack', 'appetizer', 'finger food']):
-                    categories.append('snack')
-                if any(term in keyword for term in ['drink', 'beverage', 'cocktail', 'smoothie', 'juice']):
-                    categories.append('beverage')
-                if any(term in keyword for term in ['vegan', 'vegetarian', 'plant-based']):
-                    categories.append('vegan')
-                if any(term in keyword for term in ['gluten-free', 'gluten free', 'no gluten']):
-                    categories.append('gluten-free')
-                if any(term in keyword for term in ['keto', 'ketogenic', 'low carb']):
-                    categories.append('keto')
-                    
-                # Return comma-separated categories or 'general' if none found
-                return ', '.join(categories) if categories else 'general'
-                
-            df['category'] = df['keyword'].astype(str).apply(detect_category)
         except KeyError as e:
             raise Exception(f"Missing required column: {e}")
 
