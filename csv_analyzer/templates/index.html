@@ -10,124 +10,224 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-chart-line"></i> CSV Analyzer Dashboard</h1>
-            <p>Upload your CSV file to analyze keyword data</p>
-        </header>
-
-        <section class="upload-section">
-            <div class="upload-container">
-                <h2>Upload CSV File</h2>
-                <p>CSV format: keyword, search intent, search volume, keyword difficulty, CPC</p>
-                <form id="upload-form" enctype="multipart/form-data">
-                    <div class="file-input-container">
-                        <input type="file" id="csv-file" name="file" accept=".csv" required>
-                        <label for="csv-file">Choose a file</label>
-                    </div>
-                    <button type="submit" id="upload-btn">Analyze Data</button>
-                </form>
-                <div id="loading" class="hidden">
-                    <div class="spinner"></div>
-                    <p>Processing data...</p>
-                </div>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <h1>CSV Analyzer</h1>
             </div>
-        </section>
+            <div class="nav-links">
+                <a href="#upload-section" class="active"><i class="fas fa-upload"></i> Upload</a>
+                <a href="#dashboard-section" id="dashboard-link" class="disabled"><i class="fas fa-table"></i> Dashboard</a>
+            </div>
+        </nav>
 
-        <section id="results-section" class="hidden">
-            <div class="controls">
-                <div class="search-filter">
-                    <input type="text" id="search-input" placeholder="Search keywords...">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section id="upload-section" class="section-container active">
+                <div class="section-header">
+                    <h2>Upload Your Data</h2>
+                    <p>Analyze your keyword data with our powerful dashboard</p>
                 </div>
-                <div class="filter-options">
-                    <div class="filter-group">
-                        <label for="intent-filter">Search Intent</label>
-                        <select id="intent-filter">
-                            <option value="all">All Intents</option>
-                            <option value="informational">Informational</option>
-                            <option value="commercial">Commercial</option>
-                            <option value="transactional">Transactional</option>
-                            <option value="navigational">Navigational</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="sort-by">Sort By</label>
-                        <select id="sort-by">
-                            <option value="search_volume_desc">Search Volume (High to Low)</option>
-                            <option value="search_volume_asc">Search Volume (Low to High)</option>
-                            <option value="keyword_difficulty_desc">Keyword Difficulty (High to Low)</option>
-                            <option value="keyword_difficulty_asc">Keyword Difficulty (Low to High)</option>
-                            <option value="cpc_desc">CPC (High to Low)</option>
-                            <option value="cpc_asc">CPC (Low to High)</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Volume Range</label>
-                        <div class="range-inputs">
-                            <input type="number" id="volume-min" placeholder="Min">
-                            <span>to</span>
-                            <input type="number" id="volume-max" placeholder="Max">
+                
+                <div class="upload-card">
+                    <div class="upload-instructions">
+                        <h3>CSV File Requirements</h3>
+                        <div class="requirement-box">
+                            <p>Your CSV file must include these columns:</p>
+                            <ul>
+                                <li><code>keyword</code> - The keyword phrase</li>
+                                <li><code>search_intent</code> - Purpose behind the search (informational, commercial, etc.)</li>
+                                <li><code>search_volume</code> - Monthly search volume</li>
+                                <li><code>keyword_difficulty</code> - Score from 0-100 indicating competition</li>
+                                <li><code>cpc</code> - Cost per click in dollars</li>
+                            </ul>
+                            <a href="/download-template" class="template-link"><i class="fas fa-download"></i> Download template file</a>
                         </div>
                     </div>
-                    <div class="filter-group">
-                        <button id="apply-filters">Apply Filters</button>
-                        <button id="reset-filters">Reset</button>
+                    
+                    <div class="upload-container">
+                        <form id="upload-form" enctype="multipart/form-data">
+                            <div class="file-drop-zone" id="drop-zone">
+                                <i class="fas fa-file-csv"></i>
+                                <p>Drag & drop your CSV file here</p>
+                                <p>or</p>
+                                <div class="file-input-container">
+                                    <input type="file" id="csv-file" name="file" accept=".csv" required>
+                                    <label for="csv-file">Choose File</label>
+                                </div>
+                                <p class="selected-file" id="selected-file">No file selected</p>
+                            </div>
+                            <button type="submit" id="upload-btn" class="action-button">
+                                <i class="fas fa-chart-bar"></i> Analyze Data
+                            </button>
+                        </form>
+                        
+                        <div id="loading" class="loading-container hidden">
+                            <div class="spinner"></div>
+                            <p>Processing your data...</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="dashboard-grid">
-                <div class="card">
-                    <h3>Search Volume Distribution</h3>
-                    <div class="chart-container">
-                        <canvas id="volume-chart"></canvas>
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="section-container hidden">
+                <!-- Insights Summary -->
+                <div class="insights-summary">
+                    <div class="insight-card">
+                        <i class="fas fa-key"></i>
+                        <h4>Total Keywords</h4>
+                        <p id="total-keywords">0</p>
+                    </div>
+                    <div class="insight-card">
+                        <i class="fas fa-search"></i>
+                        <h4>Avg. Volume</h4>
+                        <p id="avg-volume">0</p>
+                    </div>
+                    <div class="insight-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>Avg. Difficulty</h4>
+                        <p id="avg-difficulty">0</p>
+                    </div>
+                    <div class="insight-card">
+                        <i class="fas fa-dollar-sign"></i>
+                        <h4>Avg. CPC</h4>
+                        <p id="avg-cpc">$0.00</p>
                     </div>
                 </div>
-                <div class="card">
-                    <h3>Keyword Difficulty</h3>
-                    <div class="chart-container">
-                        <canvas id="difficulty-chart"></canvas>
-                    </div>
-                </div>
-                <div class="card">
-                    <h3>CPC Overview</h3>
-                    <div class="chart-container">
-                        <canvas id="cpc-chart"></canvas>
-                    </div>
-                </div>
-                <div class="card">
-                    <h3>Search Intent Distribution</h3>
-                    <div class="chart-container">
-                        <canvas id="intent-chart"></canvas>
-                    </div>
-                </div>
-            </div>
 
-            <div class="table-container card">
-                <h3>Keyword Data <span id="keyword-count"></span></h3>
-                <div class="table-wrapper">
-                    <table id="keywords-table">
-                        <thead>
-                            <tr>
-                                <th>Keyword</th>
-                                <th>Intent</th>
-                                <th>Volume</th>
-                                <th>Difficulty</th>
-                                <th>CPC ($)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="keywords-data">
-                            <!-- Data will be populated with JavaScript -->
-                        </tbody>
-                    </table>
+                <!-- Advanced Filters -->
+                <div class="filters-container">
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            <h3>Keyword Filters</h3>
+                            <button id="toggle-filters" class="toggle-button">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="filter-content">
+                            <div class="filter-row">
+                                <div class="filter-group search-box">
+                                    <label for="search-input">Search Keywords</label>
+                                    <div class="search-input-wrapper">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" id="search-input" placeholder="Type to search...">
+                                    </div>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="intent-filter">Search Intent</label>
+                                    <select id="intent-filter">
+                                        <option value="all">All Intents</option>
+                                        <!-- Options populated by JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="sort-by">Sort By</label>
+                                    <select id="sort-by">
+                                        <option value="quality_score_desc">Best Keywords First</option>
+                                        <option value="search_volume_desc">Highest Volume</option>
+                                        <option value="search_volume_asc">Lowest Volume</option>
+                                        <option value="keyword_difficulty_desc">Highest Difficulty</option>
+                                        <option value="keyword_difficulty_asc">Lowest Difficulty</option>
+                                        <option value="cpc_desc">Highest CPC</option>
+                                        <option value="cpc_asc">Lowest CPC</option>
+                                        <option value="keyword_asc">Keyword (A-Z)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group volume-range">
+                                    <label>Volume Range</label>
+                                    <div class="range-inputs">
+                                        <input type="number" id="volume-min" placeholder="Min">
+                                        <span>to</span>
+                                        <input type="number" id="volume-max" placeholder="Max">
+                                    </div>
+                                </div>
+                                <div class="filter-actions">
+                                    <button id="apply-filters" class="filter-btn apply">
+                                        <i class="fas fa-filter"></i> Apply Filters
+                                    </button>
+                                    <button id="reset-filters" class="filter-btn reset">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="pagination">
-                    <button id="prev-page" disabled>Previous</button>
-                    <span id="page-info">Page 1 of 1</span>
-                    <button id="next-page" disabled>Next</button>
+
+                <!-- Data Table -->
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3>Keyword Data <span id="keyword-count">(0 keywords)</span></h3>
+                        <div class="table-actions">
+                            <button id="export-csv" class="action-button small">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button id="toggle-charts" class="action-button small">
+                                <i class="fas fa-chart-pie"></i> Toggle Charts
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="keywords-table">
+                            <thead>
+                                <tr>
+                                    <th>Keyword</th>
+                                    <th>Intent</th>
+                                    <th>Volume</th>
+                                    <th>Difficulty</th>
+                                    <th>CPC ($)</th>
+                                    <th>Quality Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="keywords-data">
+                                <!-- Data will be populated with JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <button id="prev-page" disabled><i class="fas fa-chevron-left"></i> Previous</button>
+                        <span id="page-info">Page 1 of 1</span>
+                        <button id="next-page" disabled>Next <i class="fas fa-chevron-right"></i></button>
+                    </div>
                 </div>
-            </div>
-        </section>
+
+                <!-- Charts Section -->
+                <div id="charts-section" class="charts-container">
+                    <div class="chart-grid">
+                        <div class="chart-card">
+                            <h3>Search Volume Distribution</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="volume-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Keyword Difficulty</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="difficulty-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>CPC Overview</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="cpc-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Search Intent Distribution</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="intent-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
 
         <footer>
             <p>&copy; 2023 CSV Analyzer Dashboard | Powered by Flask & Chart.js</p>

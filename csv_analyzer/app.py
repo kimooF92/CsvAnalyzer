@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import pandas as pd
 import os
 import json
@@ -46,20 +46,20 @@ def process_csv(filepath):
     # Fix CSV reading issue with surrounding quotes in header
     # Before cleaning up column names, print raw columns to see what we have
     print("Raw CSV columns:", df.columns.tolist())
-    
+
     # Clean up column names (case insensitive, remove extra spaces and quotes)
     df.columns = [col.lower().strip().strip('"').strip() for col in df.columns]
-    
+
     # Print columns after basic cleaning
     print("CSV columns after basic cleaning:", df.columns.tolist())
-    
+
     # Map column names to expected format with more flexible matching
     column_mapping = {}
-    
+
     # Create a mapping with more flexible matching
     for col in df.columns:
         col_clean = col.strip().lower()
-        
+
         if 'keyword' == col_clean or ('keyword' in col_clean and 
                                       all(x not in col_clean for x in ['intent', 'volume', 'difficulty'])):
             column_mapping[col] = 'keyword'
@@ -71,16 +71,16 @@ def process_csv(filepath):
             column_mapping[col] = 'keyword_difficulty'
         elif any(x in col_clean for x in ['cpc', 'cost', 'price']):
             column_mapping[col] = 'cpc'
-            
+
     print("Column mapping:", column_mapping)
-    
+
     # Rename columns
     df = df.rename(columns=column_mapping)
-    
+
     # Ensure all required columns exist after mapping
     needed_columns = ['keyword', 'search_intent', 'search_volume', 'keyword_difficulty', 'cpc']
     missing = [col for col in needed_columns if col not in df.columns]
-    
+
     if missing:
         print(f"Missing columns after mapping: {missing}")
         print("Available columns:", df.columns.tolist())
@@ -101,6 +101,12 @@ def process_csv(filepath):
     data = df.to_dict(orient='records')
 
     return data
+
+@app.route('/download-template')
+def download_template():
+    """Provide a template CSV file for download"""
+    template_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'template.csv')
+    return send_file(template_file, as_attachment=True, download_name='keyword_template.csv')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

@@ -76,7 +76,19 @@ uploadForm.addEventListener('submit', function(e) {
         resultsSection.classList.remove('hidden');
 
         // Initialize dashboard
-        initializeDashboard();
+        initializeDashboard(data);
+
+        // Navigate to dashboard section
+        uploadSection.classList.remove('active');
+        dashboardSection.classList.add('active');
+
+        // Update navigation
+        document.querySelector('.nav-links a.active').classList.remove('active');
+        dashboardLink.classList.remove('disabled');
+        dashboardLink.classList.add('active');
+
+        // Calculate summary stats
+        updateSummaryStats(data);
     })
     .catch(error => {
         // Hide loading indicator
@@ -95,24 +107,24 @@ fileInput.addEventListener('change', function() {
 });
 
 // Initialize dashboard with data
-function initializeDashboard() {
+function initializeDashboard(data) {
     // Apply initial filters and display
     applyFilters();
 
     // Initialize charts
-    initializeCharts();
+    initializeCharts(data);
 }
 
 // Initialize all charts
-function initializeCharts() {
-    createVolumeChart();
-    createDifficultyChart();
-    createCpcChart();
-    createIntentChart();
+function initializeCharts(data) {
+    createVolumeChart(data);
+    createDifficultyChart(data);
+    createCpcChart(data);
+    createIntentChart(data);
 }
 
 // Create Volume Distribution Chart
-function createVolumeChart() {
+function createVolumeChart(data) {
     const ctx = document.getElementById('volume-chart').getContext('2d');
     //destroy existing chart if it exists
     if (charts.volume) {
@@ -128,7 +140,7 @@ function createVolumeChart() {
         '5001+': 0
     };
 
-    allData.forEach(item => {
+    data.forEach(item => {
         const volume = item.search_volume;
         if (volume <= 100) volumeRanges['0-100']++;
         else if (volume <= 500) volumeRanges['101-500']++;
@@ -165,7 +177,7 @@ function createVolumeChart() {
 }
 
 // Create Keyword Difficulty Chart
-function createDifficultyChart() {
+function createDifficultyChart(data) {
     const ctx = document.getElementById('difficulty-chart').getContext('2d');
     //destroy existing chart if it exists
     if (charts.difficulty) {
@@ -180,7 +192,7 @@ function createDifficultyChart() {
         'Very Hard (76-100)': 0
     };
 
-    allData.forEach(item => {
+    data.forEach(item => {
         const difficulty = item.keyword_difficulty;
         if (difficulty <= 25) difficultyRanges['Easy (0-25)']++;
         else if (difficulty <= 50) difficultyRanges['Medium (26-50)']++;
@@ -222,7 +234,7 @@ function createDifficultyChart() {
 }
 
 // Create CPC Chart
-function createCpcChart() {
+function createCpcChart(data) {
     const ctx = document.getElementById('cpc-chart').getContext('2d');
     //destroy existing chart if it exists
     if (charts.cpc) {
@@ -238,7 +250,7 @@ function createCpcChart() {
         '$10+': 0
     };
 
-    allData.forEach(item => {
+    data.forEach(item => {
         const cpc = item.cpc;
         if (cpc <= 1) cpcRanges['$0-1']++;
         else if (cpc <= 3) cpcRanges['$1-3']++;
@@ -283,7 +295,7 @@ function createCpcChart() {
 }
 
 // Create Intent Distribution Chart
-function createIntentChart() {
+function createIntentChart(data) {
     const ctx = document.getElementById('intent-chart').getContext('2d');
     //destroy existing chart if it exists
     if (charts.intent) {
@@ -293,7 +305,7 @@ function createIntentChart() {
     // Count intents
     const intentCounts = {};
 
-    allData.forEach(item => {
+    data.forEach(item => {
         const intent = item.search_intent;
         intentCounts[intent] = (intentCounts[intent] || 0) + 1;
     });
@@ -463,24 +475,95 @@ function debounce(func, delay) {
         timeout = setTimeout(() => func.apply(context, args), delay);
     };
 }
+
+function updateSummaryStats(data) {
+    // Example: Calculate total keywords
+    const totalKeywords = data.length;
+    document.getElementById('total-keywords').textContent = totalKeywords;
+
+    // Add other summary statistics as needed
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Navigation elements
+    const uploadSection = document.getElementById('upload-section');
+    const dashboardSection = document.getElementById('dashboard-section');
+    const dashboardLink = document.getElementById('dashboard-link');
+
+    // Upload elements
     const uploadForm = document.getElementById('upload-form');
-    const resultsSection = document.getElementById('results-section');
-    const csvFileInput = document.getElementById('csv-file');
+    const fileInput = document.getElementById('csv-file');
+    const selectedFileText = document.getElementById('selected-file');
+    const dropZone = document.getElementById('drop-zone');
     const loadingIndicator = document.getElementById('loading');
 
-    let allData = [];
-    let filteredData = [];
-    let currentPage = 1;
-    const itemsPerPage = 10;
+    // Toggle elements
+    const toggleFiltersBtn = document.getElementById('toggle-filters');
+    const toggleChartsBtn = document.getElementById('toggle-charts');
+    const chartsSection = document.getElementById('charts-section');
 
-    // Store chart instances so we can destroy them before recreating
-    let charts = {
-        volume: null,
-        difficulty: null,
-        cpc: null,
-        intent: null
-    };
+    // Setup file input display
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            selectedFileText.textContent = this.files[0].name;
+        } else {
+            selectedFileText.textContent = 'No file selected';
+        }
+    });
+
+    // Setup drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        dropZone.classList.add('active');
+    }
+
+    function unhighlight() {
+        dropZone.classList.remove('active');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            fileInput.files = files;
+            selectedFileText.textContent = files[0].name;
+        }
+    }
+
+    // Toggle filters
+    toggleFiltersBtn.addEventListener('click', function() {
+        const filterContent = this.parentElement.nextElementSibling;
+        filterContent.classList.toggle('hidden');
+        this.querySelector('i').classList.toggle('fa-chevron-down');
+        this.querySelector('i').classList.toggle('fa-chevron-up');
+    });
+
+    // Toggle charts
+    toggleChartsBtn.addEventListener('click', function() {
+        chartsSection.classList.toggle('hidden');
+        this.querySelector('i').classList.toggle('fa-chart-pie');
+        this.querySelector('i').classList.toggle('fa-table');
+    });
 
     uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -511,7 +594,25 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             loadingIndicator.classList.add('hidden');
             uploadBtn.disabled = false;
-            displayResults(data);
+
+            // Store the data
+            allData = data;
+            filteredData = [...data];
+
+            // Initialize the dashboard
+            initializeDashboard(data);
+
+            // Navigate to dashboard section
+            uploadSection.classList.remove('active');
+            dashboardSection.classList.add('active');
+
+            // Update navigation
+            document.querySelector('.nav-links a.active').classList.remove('active');
+            dashboardLink.classList.remove('disabled');
+            dashboardLink.classList.add('active');
+
+            // Calculate summary stats
+            updateSummaryStats(data);
         })
         .catch(error => {
             loadingIndicator.classList.add('hidden');
@@ -778,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Apply search filter
             const searchTerm = searchInput.value.toLowerCase();
             if (searchTerm) {
-                filteredData = filteredData.filter(item => 
+                filteredData = filteredData.filter(item =>
                     item.keyword.toLowerCase().includes(searchTerm)
                 );
             }
@@ -786,7 +887,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Apply intent filter
             const selectedIntent = intentFilter.value;
             if (selectedIntent && selectedIntent !== 'all') {
-                filteredData = filteredData.filter(item => 
+                filteredData = filteredData.filter(item =>
                     item.search_intent.toLowerCase() === selectedIntent.toLowerCase()
                 );
             }
@@ -795,7 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const minVolume = volumeMin.value ? parseInt(volumeMin.value) : 0;
             const maxVolume = volumeMax.value ? parseInt(volumeMax.value) : Infinity;
 
-            filteredData = filteredData.filter(item => 
+            filteredData = filteredData.filter(item =>
                 item.search_volume >= minVolume && item.search_volume <= maxVolume
             );
 
