@@ -43,27 +43,36 @@ def process_csv(filepath):
     # Ensure required columns exist
     required_columns = ['keyword', 'search intent', 'search volume', 'keyword difficulty', 'cpc']
 
-    # Clean up column names (case insensitive, remove extra spaces)
-    df.columns = [col.lower().strip() for col in df.columns]
+    # Fix CSV reading issue with surrounding quotes in header
+    # Before cleaning up column names, print raw columns to see what we have
+    print("Raw CSV columns:", df.columns.tolist())
     
-    # Print columns for debugging
-    print("CSV columns found:", df.columns.tolist())
+    # Clean up column names (case insensitive, remove extra spaces and quotes)
+    df.columns = [col.lower().strip().strip('"').strip() for col in df.columns]
     
-    # Map column names to expected format - with more flexible matching
+    # Print columns after basic cleaning
+    print("CSV columns after basic cleaning:", df.columns.tolist())
+    
+    # Map column names to expected format with more flexible matching
     column_mapping = {}
     
     # Create a mapping with more flexible matching
     for col in df.columns:
-        if 'keyword' == col or 'keyword' in col and all(x not in col for x in ['intent', 'volume', 'difficulty']):
+        col_clean = col.strip().lower()
+        
+        if 'keyword' == col_clean or ('keyword' in col_clean and 
+                                      all(x not in col_clean for x in ['intent', 'volume', 'difficulty'])):
             column_mapping[col] = 'keyword'
-        elif 'intent' in col or 'search intent' in col:
+        elif any(x in col_clean for x in ['intent', 'search intent']):
             column_mapping[col] = 'search_intent'
-        elif 'volume' in col or 'search volume' in col:
+        elif any(x in col_clean for x in ['volume', 'search volume']):
             column_mapping[col] = 'search_volume'
-        elif 'difficult' in col or 'keyword difficult' in col:
+        elif any(x in col_clean for x in ['difficult', 'keyword difficult']):
             column_mapping[col] = 'keyword_difficulty'
-        elif 'cpc' in col or 'cost' in col:
+        elif any(x in col_clean for x in ['cpc', 'cost', 'price']):
             column_mapping[col] = 'cpc'
+            
+    print("Column mapping:", column_mapping)
     
     # Rename columns
     df = df.rename(columns=column_mapping)
