@@ -21,8 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageInfo = document.getElementById('page-info');
 
     // Filter elements
+    const filtersSection = document.getElementById('filters-section');
     const searchInput = document.getElementById('search-input');
     const intentFilter = document.getElementById('intent-filter');
+    const categoryFilter = document.getElementById('category-filter');
     const sortBySelect = document.getElementById('sort-by');
     const volumeMin = document.getElementById('volume-min');
     const volumeMax = document.getElementById('volume-max');
@@ -124,6 +126,13 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         }
 
+        // Apply category filter
+        if (categoryFilter && categoryFilter.value !== 'all') {
+            filtered = filtered.filter(item =>
+                item.category.toLowerCase() === categoryFilter.value.toLowerCase()
+            );
+        }
+
         // Apply volume range filter
         if (volumeMin && volumeMin.value) {
             filtered = filtered.filter(item => 
@@ -151,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetFilters() {
         if (searchInput) searchInput.value = '';
         if (intentFilter) intentFilter.value = 'all';
+        if (categoryFilter) categoryFilter.value = 'all';
         if (volumeMin) volumeMin.value = '';
         if (volumeMax) volumeMax.value = '';
         if (sortBySelect) sortBySelect.value = 'quality_score_desc';
@@ -163,30 +173,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderTable() {
-        if (!keywordsData) return;
+        const tableBody = document.getElementById('keywords-data');
+        if (!tableBody) return;
 
-        keywordsData.innerHTML = '';
+        tableBody.innerHTML = '';
 
         if (filteredData.length === 0) {
-            keywordsData.innerHTML = `
-                <tr>
-                    <td colspan="6" class="no-data">No keywords found with the current filters</td>
-                </tr>
-            `;
-            if (keywordCount) keywordCount.textContent = '(0 keywords)';
+            tableBody.innerHTML = `<tr><td colspan="7" class="no-data">No data available</td></tr>`;
             return;
         }
 
-        // Update keyword count
-        if (keywordCount) keywordCount.textContent = `(${filteredData.length} keywords)`;
+        // Calculate start and end indices for current page
+        const startIdx = (currentPage - 1) * itemsPerPage;
+        const endIdx = Math.min(startIdx + itemsPerPage, filteredData.length);
 
-        // Pagination
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
-        const currentPageData = filteredData.slice(startIndex, endIndex);
+        // Update keyword count
+        const keywordCount = document.getElementById('keyword-count');
+        if (keywordCount) {
+            keywordCount.textContent = `(${filteredData.length} keywords)`;
+        }
 
         // Render table rows
-        currentPageData.forEach(item => {
+        for (let i = startIdx; i < endIdx; i++) {
+            const item = filteredData[i];
             const row = document.createElement('tr');
 
             // Determine quality score class
@@ -196,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             row.innerHTML = `
                 <td>${item.keyword}</td>
+                <td>${item.category || 'general'}</td>
                 <td>${item.search_intent || 'N/A'}</td>
                 <td>${parseInt(item.search_volume || 0).toLocaleString()}</td>
                 <td>${item.keyword_difficulty || '0'}</td>
@@ -203,8 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="quality-score ${qualityClass}">${item.qualityScore}</td>
             `;
 
-            keywordsData.appendChild(row);
-        });
+            tableBody.appendChild(row);
+        }
     }
 
     function updatePagination() {
@@ -436,7 +446,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Add quality scores to data
                 allData = data.map(item => {
                     const qualityScore = calculateQualityScore(item);
-                    return { ...item, qualityScore };
+                    let category = 'general';
+                    if (item.keyword.toLowerCase().includes('recipe')) category = 'recipe';
+                    else if (item.keyword.toLowerCase().includes('breakfast')) category = 'breakfast';
+                    else if (item.keyword.toLowerCase().includes('dessert')) category = 'dessert';
+                    return { ...item, qualityScore, category };
                 });
 
                 // Sort and filter data
@@ -454,6 +468,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         intentFilter.appendChild(option);
                     });
                 }
+
+                // Populate category filter options
+                if (categoryFilter) {
+                    const categories = [...new Set(allData.map(item => item.category))].filter(Boolean);
+                    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        categoryFilter.appendChild(option);
+                    });
+                }
+
 
                 // Render table
                 renderTable();
