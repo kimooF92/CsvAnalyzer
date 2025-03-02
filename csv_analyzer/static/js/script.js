@@ -982,7 +982,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data.sort((a, b) => b.cpc - a.cpc);
                 break;
             case 'cpc_asc':
-                data.sort((a, b) => a.cpc - b.cpc);
+                data.sort((ab) => a.cpc - b.cpc);
                 break;
         }
     }
@@ -1056,4 +1056,6 @@ document.addEventListener('DOMContentLoaded', () => {
             tableBody.appendChild(row);
         });
     }
+});
+}
 });
