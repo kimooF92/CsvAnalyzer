@@ -43,22 +43,39 @@ def process_csv(filepath):
     # Ensure required columns exist
     required_columns = ['keyword', 'search intent', 'search volume', 'keyword difficulty', 'cpc']
 
-    # Check column names (case insensitive)
+    # Clean up column names (case insensitive, remove extra spaces)
     df.columns = [col.lower().strip() for col in df.columns]
-
-    # Map column names to expected format
-    column_mapping = {
-        'keyword': 'keyword',
-        'search intent': 'search_intent',
-        'search volume': 'search_volume',
-        'keyword difficulty': 'keyword_difficulty',
-        'cpc': 'cpc'
-    }
-
+    
+    # Print columns for debugging
+    print("CSV columns found:", df.columns.tolist())
+    
+    # Map column names to expected format - with more flexible matching
+    column_mapping = {}
+    
+    # Create a mapping with more flexible matching
+    for col in df.columns:
+        if 'keyword' == col or 'keyword' in col and all(x not in col for x in ['intent', 'volume', 'difficulty']):
+            column_mapping[col] = 'keyword'
+        elif 'intent' in col or 'search intent' in col:
+            column_mapping[col] = 'search_intent'
+        elif 'volume' in col or 'search volume' in col:
+            column_mapping[col] = 'search_volume'
+        elif 'difficult' in col or 'keyword difficult' in col:
+            column_mapping[col] = 'keyword_difficulty'
+        elif 'cpc' in col or 'cost' in col:
+            column_mapping[col] = 'cpc'
+    
     # Rename columns
-    for old_col, new_col in column_mapping.items():
-        if old_col in df.columns:
-            df = df.rename(columns={old_col: new_col})
+    df = df.rename(columns=column_mapping)
+    
+    # Ensure all required columns exist after mapping
+    needed_columns = ['keyword', 'search_intent', 'search_volume', 'keyword_difficulty', 'cpc']
+    missing = [col for col in needed_columns if col not in df.columns]
+    
+    if missing:
+        print(f"Missing columns after mapping: {missing}")
+        print("Available columns:", df.columns.tolist())
+        raise Exception(f"Missing required column(s): {', '.join(missing)}")
 
     # Convert numeric columns
     try:
