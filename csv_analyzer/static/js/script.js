@@ -8,23 +8,41 @@ const itemsPerPage = 10;
 let charts = {};
 
 // DOM Elements
-const uploadForm = document.getElementById('upload-form');
-const fileInput = document.getElementById('csv-file');
-const uploadBtn = document.getElementById('upload-btn');
-const loadingIndicator = document.getElementById('loading');
-const resultsSection = document.getElementById('results-section');
-const searchInput = document.getElementById('search-input');
-const intentFilter = document.getElementById('intent-filter');
-const sortBySelect = document.getElementById('sort-by');
-const volumeMin = document.getElementById('volume-min');
-const volumeMax = document.getElementById('volume-max');
-const applyFiltersBtn = document.getElementById('apply-filters');
-const resetFiltersBtn = document.getElementById('reset-filters');
-const keywordsTable = document.getElementById('keywords-table');
-const keywordsData = document.getElementById('keywords-data');
-const keywordCount = document.getElementById('keyword-count');
-const prevPageBtn = document.getElementById('prev-page');
-const nextPageBtn = document.getElementById('next-page');
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize global variables 
+  window.allData = [];
+  window.filteredData = [];
+  window.currentPage = 1;
+  window.itemsPerPage = 10;
+  window.charts = {};
+
+  // Safely get DOM elements
+  const uploadForm = document.getElementById('upload-form');
+  const fileInput = document.getElementById('csv-file');
+  const uploadBtn = document.getElementById('upload-btn');
+  const loadingIndicator = document.getElementById('loading');
+  const uploadSection = document.getElementById('upload-section');
+  const dashboardSection = document.getElementById('dashboard-section');
+  const searchInput = document.getElementById('search-input');
+  const intentFilter = document.getElementById('intent-filter');
+  const sortBySelect = document.getElementById('sort-by');
+  const volumeMin = document.getElementById('volume-min');
+  const volumeMax = document.getElementById('volume-max');
+  const applyFiltersBtn = document.getElementById('apply-filters');
+  const resetFiltersBtn = document.getElementById('reset-filters');
+  const keywordsTable = document.getElementById('keywords-table');
+  const keywordsData = document.getElementById('keywords-data');
+  const keywordCount = document.getElementById('keyword-count');
+  const prevPageBtn = document.getElementById('prev-page');
+  const nextPageBtn = document.getElementById('next-page');
+  const selectedFileText = document.getElementById('selected-file');
+  const dropZone = document.getElementById('drop-zone');
+  const toggleFiltersBtn = document.getElementById('toggle-filters');
+  const toggleChartsBtn = document.getElementById('toggle-charts');
+  const chartsSection = document.getElementById('charts-section');
+  
+  // Check if elements exist before attaching event listeners
+  if (uploadForm) {
 const pageInfo = document.getElementById('page-info');
 
 // File upload handling
@@ -513,22 +531,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Setup drag and drop
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, preventDefaults, false);
-    });
+    if (dropZone) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
 
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
 
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, highlight, false);
-    });
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
 
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, unhighlight, false);
-    });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
 
     function highlight() {
         dropZone.classList.add('active');
@@ -544,26 +563,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const dt = e.dataTransfer;
         const files = dt.files;
 
-        if (files.length > 0) {
+        if (files.length > 0 && fileInput && selectedFileText) {
             fileInput.files = files;
             selectedFileText.textContent = files[0].name;
         }
     }
+    
+    if (dropZone) {
+        dropZone.addEventListener('drop', handleDrop, false);
+    }
 
     // Toggle filters
-    toggleFiltersBtn.addEventListener('click', function() {
-        const filterContent = this.parentElement.nextElementSibling;
-        filterContent.classList.toggle('hidden');
-        this.querySelector('i').classList.toggle('fa-chevron-down');
-        this.querySelector('i').classList.toggle('fa-chevron-up');
-    });
+    if (toggleFiltersBtn) {
+        toggleFiltersBtn.addEventListener('click', function() {
+            const filterContent = this.parentElement.nextElementSibling;
+            if (filterContent) {
+                filterContent.classList.toggle('hidden');
+                const icon = this.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                }
+            }
+        });
+    }
 
     // Toggle charts
-    toggleChartsBtn.addEventListener('click', function() {
-        chartsSection.classList.toggle('hidden');
-        this.querySelector('i').classList.toggle('fa-chart-pie');
-        this.querySelector('i').classList.toggle('fa-table');
-    });
+    if (toggleChartsBtn && chartsSection) {
+        toggleChartsBtn.addEventListener('click', function() {
+            chartsSection.classList.toggle('hidden');
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-chart-pie');
+                icon.classList.toggle('fa-table');
+            }
+        });
+    }
 
     uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -603,8 +638,13 @@ document.addEventListener('DOMContentLoaded', () => {
             initializeDashboard(data);
 
             // Navigate to dashboard section
-            uploadSection.classList.remove('active');
-            dashboardSection.classList.add('active');
+            if (uploadSection && dashboardSection) {
+                uploadSection.classList.remove('active');
+                dashboardSection.classList.add('active');
+            }
+        });
+    }
+});
 
             // Update navigation
             document.querySelector('.nav-links a.active').classList.remove('active');
