@@ -547,8 +547,7 @@ body {
 
 .table-responsive {
     overflow-x: auto;
-    max-height: 500px;
-    overflow-y: auto;
+    overflow-y: visible;
 }
 
 #keywords-table {
@@ -611,11 +610,31 @@ body {
 
 .pagination {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 20px;
     padding: 15px;
     border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-controls select {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background-color: white;
+}
+
+.page-navigation {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .pagination button {
@@ -644,6 +663,34 @@ body {
 #page-info {
     color: var(--text-light);
     font-size: 0.9rem;
+}
+
+.column-selector {
+    position: relative;
+}
+
+#column-options {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    padding: 10px 15px;
+    z-index: 100;
+    min-width: 150px;
+}
+
+.column-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.column-option input[type="checkbox"] {
+    margin: 0;
 }
 
 /* Charts */

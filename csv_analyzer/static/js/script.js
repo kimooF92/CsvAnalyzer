@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
+    const recordsPerPageSelect = document.getElementById('records-per-page'); // Added for records per page
+
 
     // Filter elements
     const searchInput = document.getElementById('search-input');
@@ -38,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allData = [];
     let filteredData = [];
     let currentPage = 1;
-    let itemsPerPage = 15;
+    let itemsPerPage = 10; // Default items per page
     let currentSortField = 'quality_score_desc';
 
     // Functions
@@ -112,27 +114,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // Apply search filter
         if (searchInput && searchInput.value) {
             const searchTerm = searchInput.value.toLowerCase();
-            filtered = filtered.filter(item => 
+            filtered = filtered.filter(item =>
                 item.keyword.toLowerCase().includes(searchTerm)
             );
         }
 
         // Apply intent filter
         if (intentFilter && intentFilter.value !== 'all') {
-            filtered = filtered.filter(item => 
+            filtered = filtered.filter(item =>
                 item.search_intent.toLowerCase() === intentFilter.value.toLowerCase()
             );
         }
 
         // Apply volume range filter
         if (volumeMin && volumeMin.value) {
-            filtered = filtered.filter(item => 
+            filtered = filtered.filter(item =>
                 parseInt(item.search_volume || 0) >= parseInt(volumeMin.value)
             );
         }
 
         if (volumeMax && volumeMax.value) {
-            filtered = filtered.filter(item => 
+            filtered = filtered.filter(item =>
                 parseInt(item.search_volume || 0) <= parseInt(volumeMax.value)
             );
         }
@@ -195,12 +197,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.qualityScore < 40) qualityClass = 'low-quality';
 
             row.innerHTML = `
-                <td>${item.keyword}</td>
-                <td>${item.search_intent || 'N/A'}</td>
-                <td>${parseInt(item.search_volume || 0).toLocaleString()}</td>
-                <td>${item.keyword_difficulty || '0'}</td>
-                <td>$${parseFloat(item.cpc || 0).toFixed(2)}</td>
-                <td class="quality-score ${qualityClass}">${item.qualityScore}</td>
+                <td data-column="keyword">${item.keyword}</td>
+                <td data-column="intent">${item.search_intent || 'N/A'}</td>
+                <td data-column="volume">${parseInt(item.search_volume || 0).toLocaleString()}</td>
+                <td data-column="difficulty">${item.keyword_difficulty || '0'}</td>
+                <td data-column="cpc">$${parseFloat(item.cpc || 0).toFixed(2)}</td>
+                <td class="quality-score ${qualityClass}" data-column="qualityScore">${item.qualityScore}</td>
             `;
 
             keywordsData.appendChild(row);
@@ -546,6 +548,17 @@ document.addEventListener('DOMContentLoaded', () => {
             renderTable();
         });
     }
+
+    //Records per page change
+    if (recordsPerPageSelect) {
+        recordsPerPageSelect.addEventListener('change', function() {
+            itemsPerPage = parseInt(this.value, 10);
+            currentPage = 1; // Reset to page 1 when changing items per page
+            renderTable();
+            updatePagination();
+        });
+    }
+
 
     // Toggle sections
     if (toggleFiltersBtn) {

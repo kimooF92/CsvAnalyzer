@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,7 +30,7 @@
                     <h2>Upload Your Data</h2>
                     <p>Analyze your keyword data with our powerful dashboard</p>
                 </div>
-                
+
                 <div class="upload-card">
                     <div class="upload-instructions">
                         <h3>CSV File Requirements</h3>
@@ -47,7 +46,7 @@
                             <a href="/download-template" class="template-link"><i class="fas fa-download"></i> Download template file</a>
                         </div>
                     </div>
-                    
+
                     <div class="upload-container">
                         <form id="upload-form" enctype="multipart/form-data">
                             <div class="file-drop-zone" id="drop-zone">
@@ -64,7 +63,7 @@
                                 <i class="fas fa-chart-bar"></i> Analyze Data
                             </button>
                         </form>
-                        
+
                         <div id="loading" class="loading-container hidden">
                             <div class="spinner"></div>
                             <p>Processing your data...</p>
@@ -177,12 +176,11 @@
                         <table id="keywords-table">
                             <thead>
                                 <tr>
-                                    <th>Keyword</th>
-                                    <th>Intent</th>
-                                    <th>Volume</th>
-                                    <th>Difficulty</th>
-                                    <th>CPC ($)</th>
-                                    <th>Quality Score</th>
+                                    <th data-sort="keyword" data-column="keyword">Keyword <i class="fas fa-sort"></i></th>
+                                    <th data-sort="search_intent" data-column="intent">Search Intent <i class="fas fa-sort"></i></th>
+                                    <th data-sort="search_volume" data-column="volume" class="numeric-col">Search Volume <i class="fas fa-sort"></i></th>
+                                    <th data-sort="keyword_difficulty" data-column="difficulty" class="numeric-col">Difficulty <i class="fas fa-sort"></i></th>
+                                    <th data-sort="cpc" data-column="cpc" class="numeric-col">CPC <i class="fas fa-sort"></i></th>
                                 </tr>
                             </thead>
                             <tbody id="keywords-data">
@@ -191,9 +189,33 @@
                         </table>
                     </div>
                     <div class="pagination">
-                        <button id="prev-page" disabled><i class="fas fa-chevron-left"></i> Previous</button>
-                        <span id="page-info">Page 1 of 1</span>
-                        <button id="next-page" disabled>Next <i class="fas fa-chevron-right"></i></button>
+                        <div class="pagination-controls">
+                            <label for="records-per-page">Show: </label>
+                            <select id="records-per-page">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span>records</span>
+                        </div>
+                        <div class="page-navigation">
+                            <button id="prev-page" disabled><i class="fas fa-chevron-left"></i> Previous</button>
+                            <span id="page-info">Page 1 of 1</span>
+                            <button id="next-page" disabled>Next <i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="column-selector">
+                            <button id="toggle-columns" class="action-button small">
+                                <i class="fas fa-columns"></i> Columns
+                            </button>
+                            <div id="column-options" class="hidden">
+                                <div class="column-option"><input type="checkbox" id="col-keyword" checked> <label for="col-keyword">Keyword</label></div>
+                                <div class="column-option"><input type="checkbox" id="col-intent" checked> <label for="col-intent">Intent</label></div>
+                                <div class="column-option"><input type="checkbox" id="col-volume" checked> <label for="col-volume">Volume</label></div>
+                                <div class="column-option"><input type="checkbox" id="col-difficulty" checked> <label for="col-difficulty">Difficulty</label></div>
+                                <div class="column-option"><input type="checkbox" id="col-cpc" checked> <label for="col-cpc">CPC</label></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
