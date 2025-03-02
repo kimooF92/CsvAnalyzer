@@ -1,2 +1,7 @@
-"keyword,search_intent,search_volume,keyword_difficulty,cpc"
-"corn nuts,Informational,27100,14,0.3"
+
+keyword,search_intent,search_volume,keyword_difficulty,cpc
+data visualization,informational,5400,45,2.50
+data analysis tools,commercial,3200,38,3.75
+data science courses,transactional,8900,52,4.20
+data analytics dashboard,commercial,2100,35,3.10
+data mining techniques,informational,4300,42,1.95
